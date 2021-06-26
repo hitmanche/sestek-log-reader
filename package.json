@@ -13,7 +13,8 @@
     "start": "node -r @babel/register ./.erb/scripts/CheckPortInUse.js && yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electron -r ./.erb/scripts/BabelRegister ./src/main.dev.ts",
     "start:renderer": "cross-env NODE_ENV=development webpack serve --config ./.erb/configs/webpack.config.renderer.dev.babel.js",
-    "test": "jest"
+    "test": "jest",
+    "package-win": "electron-packager . sestek-log-reader --overwrite --asar=true --platform=win32 --arch=x64 --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Sestek Log Reader\""
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -32,6 +33,9 @@
   "build": {
     "productName": "sestek-log-reader",
     "appId": "org.erb.sesteklogreader",
+    "asarUnpack": [
+      "**/*.node"
+    ],
     "files": [
       "dist/",
       "node_modules/",
@@ -176,7 +180,7 @@
     "@types/history": "4.7.6",
     "@types/jest": "^26.0.15",
     "@types/node": "14.14.10",
-    "@types/react": "^16.9.44",
+    "@types/react": "^16.14.8",
     "@types/react-dom": "^16.9.9",
     "@types/react-router-dom": "^5.1.6",
     "@types/react-test-renderer": "^16.9.3",
@@ -200,6 +204,7 @@
     "electron-builder": "^22.10.5",
     "electron-devtools-installer": "^3.1.1",
     "electron-notarize": "^1.0.0",
+    "electron-packager": "^15.2.0",
     "electron-rebuild": "^2.3.2",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.3",
@@ -243,14 +248,22 @@
     "yarn-deduplicate": "^3.1.0"
   },
   "dependencies": {
+    "antd": "^4.16.5",
     "electron-debug": "^3.1.0",
     "electron-log": "^4.2.4",
     "electron-updater": "^4.3.4",
+    "fs": "0.0.1-security",
     "history": "^5.0.0",
+    "moment": "^2.29.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-highlight-words": "^0.17.0",
     "react-router-dom": "^5.2.0",
-    "regenerator-runtime": "^0.13.5",
+    "react-router-redux": "^4.0.8",
+    "redux": "^4.1.0",
+    "redux-logger": "^3.0.6",
+    "redux-thunk": "^2.3.0",
+    "regenerator-runtime": "^0.13.7",
     "source-map-support": "^0.5.19"
   },
   "devEngines": {
