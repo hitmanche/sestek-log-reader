@@ -16,6 +16,8 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { ReturnBrowserWindow } from './common';
 
+const path = require('path');
+
 export default class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -59,12 +61,29 @@ const createWindow = async () => {
     await installExtensions();
   }
 
-  mainWindow = ReturnBrowserWindow();
+  const RESOURCES_PATH = app.isPackaged
+    ? path.join(process.resourcesPath, 'assets')
+    : path.join(__dirname, '../assets');
 
-  mainWindow.loadURL(`file://${__dirname}/index.html`);
+  const getAssetPath = (...paths: string[]): string => {
+    return path.join(RESOURCES_PATH, ...paths);
+  };
 
-  // @TODO: Use 'ready-to-show' event
-  //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
+  mainWindow = new BrowserWindow({
+    show: false,
+    width: 1024,
+    height: 728,
+    icon: getAssetPath('icon.png'),
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true,
+      enableRemoteModule: true,
+      contextIsolation: false,
+    },
+  });
+
+  mainWindow.loadURL(`file://${path.join(__dirname, 'index.html')}`);
+
   mainWindow.webContents.on('did-finish-load', () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');

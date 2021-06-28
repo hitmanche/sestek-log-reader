@@ -66,6 +66,7 @@ const LogJson = () => {
       <Modal
         title="Log Detayı"
         visible={isModalVisible}
+        width="70%"
         onCancel={triggerModal}
         cancelText="Kapat"
         okText="Tamam"

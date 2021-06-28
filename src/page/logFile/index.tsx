@@ -7,9 +7,8 @@ const path = require('path');
 
 const LogFile = (props: any) => {
   // BURASI FILE PATH GELDIGINDE OKUMA ISLEMININ YAPILDI YER ##############
-  const [filePath, setFilePath] = useState(
-    'C:\\Users\\tayfu\\Desktop\\botconnector'
-  );
+  // 'C:\\Users\\tayfu\\Desktop\\botconnector'
+  const [filePath, setFilePath] = useState('');
   const [folderList, setFolderList] = useState(new Array<string>());
   const changeSetFilePath = (newData: string) => setFilePath(newData);
   const changeSetFolderList = (newData: Array<string>) =>

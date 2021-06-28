@@ -1,4 +1,4 @@
-const EventHelper = {
+export const EventHelper = {
   events: {},
   dispatch: function (event, data) {
     if (!this.events[event]) return;
@@ -9,5 +9,3 @@ const EventHelper = {
     this.events[event].push(callback);
   },
 };
-
-module.exports = { EventHelper };

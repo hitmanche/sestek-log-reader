@@ -15,6 +15,7 @@ module.exports = {
     'object-shorthand': 'off',
     'prefer-destructuring': 'off',
     'consistent-return': 'off',
+    'import/prefer-default-export': 'off',
   },
   parserOptions: {
     ecmaVersion: 2020,

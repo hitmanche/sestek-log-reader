@@ -33,16 +33,14 @@
   "build": {
     "productName": "sestek-log-reader",
     "appId": "org.erb.sesteklogreader",
-    "asarUnpack": [
-      "**/*.node"
-    ],
     "files": [
       "dist/",
       "node_modules/",
       "index.html",
       "main.prod.js",
       "main.prod.js.map",
-      "package.json"
+      "package.json",
+      "preload.js"
     ],
     "afterSign": ".erb/scripts/Notarize.js",
     "mac": {
