@@ -16,6 +16,7 @@ module.exports = {
     'prefer-destructuring': 'off',
     'consistent-return': 'off',
     'import/prefer-default-export': 'off',
+    'react/destructuring-assignment': 'off',
   },
   parserOptions: {
     ecmaVersion: 2020,

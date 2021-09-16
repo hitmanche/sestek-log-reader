@@ -67,7 +67,7 @@ const LogFile = (props: any) => {
         footer={<div>Log kaydını açmak için üstüne tıklayınız..</div>}
         bordered
         pagination={{
-          pageSize: 10,
+          pageSize: 100,
         }}
         dataSource={folderList.reverse()}
         renderItem={(item: string) => (

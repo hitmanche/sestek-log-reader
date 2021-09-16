@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useEffect, useState, useRef } from 'react';
-import { Table, Tag, Input, Space, Button } from 'antd';
+import { Tag, Input, Space, Button, Tooltip } from 'antd';
 import { History } from 'history';
 import moment from 'moment';
 import Highlighter from 'react-highlight-words';
@@ -10,12 +10,14 @@ import {
 } from '@ant-design/icons';
 import { EventHelper } from '../../common/globalExtensions';
 import LogJson from './logJson';
+import TableMemo from './tableMemo';
 
 interface DataLogType {
-  date: string;
+  id?: number;
+  date?: string;
   type?: string;
   text?: string;
-  json: Array<string>;
+  json?: Array<string>;
   jsonIndex?: number;
 }
 interface LogDetailProps {
@@ -25,8 +27,49 @@ interface LogDetailProps {
 
 const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
   moment.locale('tr');
-  const [dataLog, setDataLog] = useState(new Array<DataLogType>());
-  const [fileName, setFileName] = useState('');
+
+  const fileName = props.history.location.state?.filename;
+
+  const loadDataLog = () => {
+    const arrayData = new Array<DataLogType>();
+    if (Array.isArray(props.history.location.state?.textByLine)) {
+      let indexOfState = -1;
+      props?.history?.location?.state?.textByLine.forEach((text: string) => {
+        const resDate = text.match(
+          /\d{4}([\/ ])\d{2}([\/ ])\d{2}([\/ ])\d{2}([\/:])\d{2}([\/:])\d{2}/g
+        );
+        if (resDate) {
+          indexOfState += 1;
+          const start = resDate.toString().replace(/ /g, '-').substr(0, 10);
+          const end = resDate.toString().substr(11, 10);
+          const dating = `${start}T${end}`;
+
+          const typing = text.match(/([\/\[])\D{3}([\/\]])/g);
+          let texting = '';
+          if (text.length > 37) {
+            texting = text.substr(37, text.length - 37);
+          }
+          arrayData.push({
+            id: arrayData.length + 1,
+            date: dating,
+            type:
+              Array.isArray(typing) && typing.length > 0 ? typing[0] : '[NFD]',
+            text: texting,
+            jsonIndex: -1,
+            json: new Array<string>(),
+          });
+        } else if (!arrayData[indexOfState]) {
+          arrayData.push({ text });
+        } else if (text && arrayData[indexOfState]) {
+          arrayData[indexOfState].jsonIndex = indexOfState;
+          arrayData[indexOfState].json?.push(text);
+        }
+      });
+    }
+    return arrayData;
+  };
+
+  const [dataLog, setDataLog] = useState(loadDataLog());
 
   const [searchedColumn, setSearchedColumn] = useState('');
   const [searchText, setSearchText] = useState('');
@@ -126,6 +169,9 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
       dataIndex: 'date',
       ...getColumnSearchProps('date'),
       width: 180,
+      render: (date: string) => {
+        return moment(date).format('LLL');
+      },
     },
     {
       title: 'Tip',
@@ -142,6 +188,9 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
             break;
           case '[ERR]':
             color = 'red';
+            break;
+          case '[WRN]':
+            color = '#ff9966';
             break;
           default:
             break;
@@ -170,53 +219,26 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
             </Tag>
           );
         }
+        return null;
       },
     },
     {
       title: 'Açıklama',
       dataIndex: 'text',
       ...getColumnSearchProps('text'),
+      render: (text: string) => {
+        if (text?.length > 250) {
+          //  return `${text.substring(0, 247)}...`;
+          return (
+            <Tooltip title={text} color="orange" placement="bottomLeft">
+              <div>{`${text.substring(0, 247)}...`}</div>
+            </Tooltip>
+          );
+        }
+        return text;
+      },
     },
   ];
-
-  useEffect(() => {
-    if (Array.isArray(props.history.location.state?.textByLine)) {
-      const arrayData = new Array<DataLogType>();
-      let indexOfState = -1;
-      setFileName(props.history.location.state?.filename);
-      props?.history?.location?.state?.textByLine.forEach((text: string) => {
-        const resDate = text.match(
-          /\d{4}([\/ ])\d{2}([\/ ])\d{2}([\/ ])\d{2}([\/:])\d{2}([\/:])\d{2}/g
-        );
-        if (resDate) {
-          indexOfState += 1;
-          const start = resDate.toString().replace(/ /g, '-').substr(0, 10);
-          const end = resDate.toString().substr(11, 10);
-          const dating = `${start}T${end}`;
-
-          const typing = text.match(/([\/\[])\D{3}([\/\]])/g);
-          let texting = '';
-          if (text.length > 37) {
-            texting = text.substr(37, text.length - 37);
-          }
-          arrayData.push({
-            date: moment(dating).format('LLL'),
-            type:
-              Array.isArray(typing) && typing.length > 0 ? typing[0] : '[NFD]',
-            text: texting,
-            jsonIndex: -1,
-            json: new Array<string>(),
-          });
-        } else if (!arrayData[indexOfState]) {
-          arrayData.push({ text });
-        } else if (text && arrayData[indexOfState]) {
-          arrayData[indexOfState].jsonIndex = indexOfState;
-          arrayData[indexOfState].json.push(text);
-        }
-      });
-      setDataLog(arrayData);
-    }
-  }, []);
 
   return (
     <div style={{ padding: 10 }}>
@@ -230,12 +252,7 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
       <Tag style={{ marginLeft: 20 }} color="green" icon={<FileOutlined />}>
         {fileName}
       </Tag>
-      <Table
-        pagination={{ position: ['topLeft'] }}
-        columns={columns}
-        bordered
-        dataSource={JSON.parse(JSON.stringify(dataLog)).reverse()}
-      />
+      <TableMemo columns={columns} dataLog={dataLog} />
     </div>
   );
 };
