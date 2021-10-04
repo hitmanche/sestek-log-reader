@@ -59,6 +59,10 @@ const LogJson = () => {
       setText(readyText);
       triggerModal();
     });
+
+    return () => {
+      EventHelper.unsubscribe('logJson');
+    };
   }, []);
 
   return (

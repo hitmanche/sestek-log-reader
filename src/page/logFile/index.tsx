@@ -53,7 +53,7 @@ const LogFile = (props: any) => {
     <div style={{ padding: 10 }}>
       <h1>Sestek Log Reader</h1>
       <Input.Search
-        placeholder="Log Dosyaları Yolu"
+        placeholder="Log File Path"
         allowClear
         value={filePath}
         enterButton="Search"
@@ -62,7 +62,7 @@ const LogFile = (props: any) => {
         onSearch={onClickTest}
       />
       <br />
-      <Divider orientation="left">Log Kayıtları</Divider>
+      <Divider orientation="left">Log Paths</Divider>
       <List
         footer={<div>Log kaydını açmak için üstüne tıklayınız..</div>}
         bordered
@@ -77,13 +77,13 @@ const LogFile = (props: any) => {
               style={{ cursor: 'pointer' }}
               onClick={() =>
                 readTextFile(`${filePath}/${item}`, (response: any) => {
-                  console.log(response.getResponseHeader('Last-Modified'));
                   const textByLine = response.responseText.split('\n');
                   props.history.push({
                     pathname: '/logDetail',
                     state: {
                       textByLine,
                       filename: item,
+                      filepath: filePath,
                     },
                   });
                 })

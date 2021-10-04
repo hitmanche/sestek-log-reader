@@ -16,6 +16,6 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "@types/react-highlight-words": "^0.16.2"
+    "@types/react-highlight-words": "^0.16.3"
   }
 }

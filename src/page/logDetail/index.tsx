@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useState, useRef } from 'react';
+import React, { FunctionComponent, useState, useRef, useEffect } from 'react';
 import { Tag, Input, Space, Button, Tooltip } from 'antd';
 import { History } from 'history';
 import moment from 'moment';
@@ -8,9 +8,11 @@ import {
   BackwardOutlined,
   FileOutlined,
 } from '@ant-design/icons';
+import chokidar from 'chokidar';
 import { EventHelper } from '../../common/globalExtensions';
 import LogJson from './logJson';
 import TableMemo from './tableMemo';
+import { readTextFile } from '../../common';
 
 interface DataLogType {
   id?: number;
@@ -18,7 +20,7 @@ interface DataLogType {
   type?: string;
   text?: string;
   json?: Array<string>;
-  jsonIndex?: number;
+  jsonindex?: number;
 }
 interface LogDetailProps {
   fileName: string;
@@ -29,12 +31,14 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
   moment.locale('tr');
 
   const fileName = props.history.location.state?.filename;
+  const filePath = props.history.location.state?.filepath;
 
-  const loadDataLog = () => {
+  // DATANIN FILE READER ILE OKUNUP ANLIK OLARAK YUKLENEN KISIM ########
+  const loadDataLog = (textByLine: Array<string>) => {
     const arrayData = new Array<DataLogType>();
-    if (Array.isArray(props.history.location.state?.textByLine)) {
+    if (Array.isArray(textByLine)) {
       let indexOfState = -1;
-      props?.history?.location?.state?.textByLine.forEach((text: string) => {
+      textByLine.forEach((text: string) => {
         const resDate = text.match(
           /\d{4}([\/ ])\d{2}([\/ ])\d{2}([\/ ])\d{2}([\/:])\d{2}([\/:])\d{2}/g
         );
@@ -55,25 +59,37 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
             type:
               Array.isArray(typing) && typing.length > 0 ? typing[0] : '[NFD]',
             text: texting,
-            jsonIndex: -1,
+            jsonindex: -1,
             json: new Array<string>(),
           });
         } else if (!arrayData[indexOfState]) {
           arrayData.push({ text });
         } else if (text && arrayData[indexOfState]) {
-          arrayData[indexOfState].jsonIndex = indexOfState;
+          arrayData[indexOfState].jsonindex = indexOfState;
           arrayData[indexOfState].json?.push(text);
         }
       });
     }
     return arrayData;
   };
-
-  const [dataLog, setDataLog] = useState(loadDataLog());
+  const [dataLog, setDataLog] = useState(
+    loadDataLog(props.history.location.state?.textByLine)
+  );
+  // DATANIN FILE READER ILE OKUNUP ANLIK OLARAK YUKLENEN KISIM ########
 
   const [searchedColumn, setSearchedColumn] = useState('');
   const [searchText, setSearchText] = useState('');
   const searchInput = useRef();
+
+  useEffect(() => {
+    chokidar.watch(filePath).on('change', (event: string) => {
+      if (event === `${filePath}\\${fileName}`) {
+        readTextFile(event, (response: any) => {
+          setDataLog(loadDataLog(response.responseText.split('\n')));
+        });
+      }
+    });
+  }, []);
 
   const handleSearch = (selectedKeys: any, confirm: any, dataIndex: any) => {
     confirm();
@@ -112,7 +128,7 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
             size="small"
             style={{ width: 90 }}
           >
-            Ara
+            Search
           </Button>
           <Button
             onClick={() => handleReset(clearFilters)}
@@ -165,7 +181,7 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
 
   const columns = [
     {
-      title: 'Tarih',
+      title: 'Date',
       dataIndex: 'date',
       ...getColumnSearchProps('date'),
       width: 180,
@@ -174,7 +190,7 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
       },
     },
     {
-      title: 'Tip',
+      title: 'Type',
       dataIndex: 'type',
       ...getColumnSearchProps('type'),
       render: (tag: string) => {
@@ -203,8 +219,8 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
       },
     },
     {
-      title: 'Veri',
-      dataIndex: 'jsonIndex',
+      title: 'Data',
+      dataIndex: 'jsonindex',
       render: (index: number) => {
         if (index > -1) {
           return (
@@ -223,7 +239,7 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
       },
     },
     {
-      title: 'Açıklama',
+      title: 'Explanation',
       dataIndex: 'text',
       ...getColumnSearchProps('text'),
       render: (text: string) => {
@@ -247,7 +263,7 @@ const LogDetail: FunctionComponent<LogDetailProps> = (props) => {
         icon={<BackwardOutlined />}
         onClick={() => props.history.push('/')}
       >
-        Geri Dön
+        Back
       </Button>
       <Tag style={{ marginLeft: 20 }} color="green" icon={<FileOutlined />}>
         {fileName}
